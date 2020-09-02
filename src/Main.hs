@@ -10,12 +10,14 @@ import Common
 import Parse
 import Output
 
+import qualified Text.Megaparsec.Error as E
+
 getPacket :: ConnState -> Socket -> (PacketIn -> IO ()) -> IO ()
 getPacket cs s f = do
   dat <- recv s 2048
   let p = parsePacket cs dat
   case p of
-    Left e -> putStrLn e -- TODO: good error handling
+    Left e -> putStr $ E.errorBundlePretty e -- TODO: good error handling
     Right x -> f x
 
 handleConn :: ConnState -> Socket -> IO ()

@@ -32,3 +32,4 @@ data PacketIn
 data PacketOut
   = PResponse Text
   | PPong Int64
+  deriving (Show)

@@ -2,28 +2,33 @@
 
 module Parse(parsePacket) where
 
-import Data.Attoparsec.ByteString(Parser)
-import qualified Data.Attoparsec.ByteString as P
+import Text.Megaparsec
+import Control.Monad.Combinators
+import Data.Void
 
 import qualified Data.Text.Encoding as E
 
 import Common
 
+type Parser = Parsec Void ByteString
+
 -- Simple types {{{
+
+anyWord8 = anySingle
 
 wordBE :: (Integral a, Bits a) => Int -> Parser a
 wordBE n = do
-  xs <- P.count n P.anyWord8
+  xs <- count n anyWord8
   pure $ foldl f 0 xs
   where f s x = s `shiftL` 8 .|. fromIntegral x
 
 bool :: Parser Bool
 bool = do
-  x <- P.anyWord8
+  x <- anyWord8
   pure $ x /= 0
 
 uByte :: Parser Word8
-uByte = P.anyWord8
+uByte = anyWord8
 
 byte :: Parser Int8
 byte = fromIntegral <$> uByte
@@ -48,7 +53,7 @@ long = fromIntegral <$> uLong
 
 varInt' :: Parser (Int, Int)
 varInt' = do
-  x <- fromIntegral <$> P.anyWord8
+  x <- fromIntegral <$> anyWord8
   let x' = x `clearBit` 7
   if x `testBit` 7
   then do
@@ -62,7 +67,7 @@ varInt = fst <$> varInt'
 string :: Parser Text
 string = do
   n <- varInt
-  x <- P.take n
+  x <- takeP Nothing n
   case E.decodeUtf8' x of
     Left e -> fail $ show e
     Right x -> pure x
@@ -75,15 +80,11 @@ packet :: ConnState -> Parser PacketIn
 packet s = do
   len <- varInt
   (packId,n) <- varInt'
-  let bodyLen = len - n
-  body <- P.take bodyLen
-  P.endOfInput
-  case P.parseOnly (packet' s packId <* P.endOfInput) body of
-    Left e -> fail $ "Error with packet ID " <> show packId
-    Right x -> pure x
+  let bodyLen = len - n -- currently unused
+  packet' s packId <* eof
 
-parsePacket :: ConnState -> ByteString -> Either String PacketIn
-parsePacket = P.parseOnly . packet
+parsePacket :: ConnState -> ByteString -> Either (ParseErrorBundle ByteString Void) PacketIn
+parsePacket cs = parse (packet cs) "<network packet>"
 
 -- }}}
 
