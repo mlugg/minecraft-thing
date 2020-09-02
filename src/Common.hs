@@ -1,3 +1,5 @@
+{-# LANGUAGE Safe #-}
+
 module Common
   ( module Common
   , module Data.Text
