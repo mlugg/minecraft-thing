@@ -4,7 +4,7 @@ version:             0.1.0.0
 -- synopsis:
 -- description:
 -- bug-reports:
--- license:
+license:             Unlicense
 license-file:        LICENSE
 author:              mlugg
 maintainer:          mlugg@mlugg.co.uk
