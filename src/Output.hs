@@ -1,4 +1,4 @@
-{-# LANGUAGE Safe, LambdaCase #-}
+{-# LANGUAGE Trustworthy, LambdaCase #-}
 
 module Output(sendPacket) where
 

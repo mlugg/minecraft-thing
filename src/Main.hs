@@ -1,4 +1,4 @@
-{-# LANGUAGE Safe, OverloadedStrings, LambdaCase #-}
+{-# LANGUAGE Trustworthy, OverloadedStrings, LambdaCase #-}
 
 module Main where
 
